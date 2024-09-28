@@ -82,7 +82,7 @@
         const imageContainerTop = document.getElementById('image-container-top');
         for (let i = 301; i <= 579; i++) {
             const img = document.createElement('img');
-            img.src = `File ${String(i).padStart(5, '0')}.jpeg`;
+            img.src = `File_${String(i).padStart(5, '0')}.jpeg`;
             img.alt = `Image ${i}`;
             img.className = 'image';
             imageContainerTop.appendChild(img);
