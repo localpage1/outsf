@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>滚动与缩放的图片浏览</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0; /* 移除内边距 */
+            height: 100%;
+            overflow-x: hidden; /* 禁止横向滚动 */
+            width: 100vw; /* 确保宽度填满视口 */
+        }
+
+        .split {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden; /* 防止溢出 */
+        }
+
+        .top, .bottom {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0; /* 移除内边距 */
+            width: 100%; /* 确保宽度填满父元素 */
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .image {
+            position: relative;
+            width: 100%;
+            display: block;
+            transition: transform 0.1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="split">
+        <!-- 上半部分显示图片 -->
+        <div class="top" id="top">
+            <div class="image-container" id="image-container-top">
+                <!-- 动态生成上半部分的图片 -->
+            </div>
+        </div>
+
+        <!-- 下半部分显示图片 -->
+        <div class="bottom" id="bottom">
+            <div class="image-container" id="image-container-bottom">
+                <!-- 动态生成下半部分的图片 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 恢复滚动位置
+        window.onload = function() {
+            document.getElementById('top').scrollTop = localStorage.getItem('topScroll') || 0;
+            document.getElementById('bottom').scrollTop = localStorage.getItem('bottomScroll') || 0;
+            translateYTop = localStorage.getItem('imageTranslateYTop') ? parseFloat(localStorage.getItem('imageTranslateYTop')) : 0;
+            translateYBottom = localStorage.getItem('imageTranslateYBottom') ? parseFloat(localStorage.getItem('imageTranslateYBottom')) : 0;
+            restoreImageState();
+        };
+
+        // 保存滚动位置
+        document.getElementById('top').onscroll = function() {
+            localStorage.setItem('topScroll', this.scrollTop);
+        };
+        document.getElementById('bottom').onscroll = function() {
+            localStorage.setItem('bottomScroll', this.scrollTop);
+        };
+
+        // 动态生成上半部分图片列表
+        const imageContainerTop = document.getElementById('image-container-top');
+        for (let i = 301; i <= 579; i++) {
+            const img = document.createElement('img');
+            img.src = `File ${String(i).padStart(5, '0')}.jpeg`;
+            img.alt = `Image ${i}`;
+            img.className = 'image';
+            imageContainerTop.appendChild(img);
+        }
+
+        // 动态生成下半部分图片列表
+        const imageContainerBottom = document.getElementById('image-container-bottom');
+        for (let i = 1; i <= 257; i++) {
+            const img = document.createElement('img');
+            img.src = `File ${String(i).padStart(5, '0')}.jpeg`;
+            img.alt = `Image ${i}`;
+            img.className = 'image';
+            imageContainerBottom.appendChild(img);
+        }
+
+        // 拖动的实现
+        let translateYTop = 0;
+        let translateYBottom = 0;
+        let lastTouchYTop = 0;
+        let lastTouchYBottom = 0;
+
+        function restoreImageState() {
+            // 恢复上半部分的拖移状态
+            const imagesTop = document.querySelectorAll('#image-container-top .image');
+            imagesTop.forEach(image => {
+                image.style.transform = `translateY(${translateYTop}px)`;
+            });
+
+            // 恢复下半部分的拖移状态
+            const imagesBottom = document.querySelectorAll('#image-container-bottom .image');
+            imagesBottom.forEach(image => {
+                image.style.transform = `translateY(${translateYBottom}px)`;
+            });
+        }
+
+        // 上半部分的事件监听
+        imageContainerTop.addEventListener('touchstart', function (e) {
+            if (e.touches.length === 1) {
+                lastTouchYTop = e.touches[0].clientY;
+            }
+        });
+
+        imageContainerTop.addEventListener('touchmove', function (e) {
+            if (e.touches.length === 1) {
+                // 单指拖动，仅允许上下移动
+                let dy = e.touches[0].clientY - lastTouchYTop;
+                translateYTop += dy;
+                lastTouchYTop = e.touches[0].clientY;
+                const imagesTop = document.querySelectorAll('#image-container-top .image');
+                imagesTop.forEach(image => {
+                    image.style.transform = `translateY(${translateYTop}px)`;
+                });
+            }
+        });
+
+        imageContainerTop.addEventListener('touchend', function () {
+            // 保存上半部分图片的拖移状态
+            localStorage.setItem('imageTranslateYTop', translateYTop);
+        });
+
+        // 下半部分的事件监听
+        imageContainerBottom.addEventListener('touchstart', function (e) {
+            if (e.touches.length === 1) {
+                lastTouchYBottom = e.touches[0].clientY;
+            }
+        });
+
+        imageContainerBottom.addEventListener('touchmove', function (e) {
+            if (e.touches.length === 1) {
+                // 单指拖动，仅允许上下移动
+                let dy = e.touches[0].clientY - lastTouchYBottom;
+                translateYBottom += dy;
+                lastTouchYBottom = e.touches[0].clientY;
+                const imagesBottom = document.querySelectorAll('#image-container-bottom .image');
+                imagesBottom.forEach(image => {
+                    image.style.transform = `translateY(${translateYBottom}px)`;
+                });
+            }
+        });
+
+        imageContainerBottom.addEventListener('touchend', function () {
+            // 保存下半部分图片的拖移状态
+            localStorage.setItem('imageTranslateYBottom', translateYBottom);
+        });
+    </script>
+</body>
+</html>
